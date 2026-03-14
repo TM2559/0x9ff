@@ -1,22 +1,30 @@
 "use client";
 
+import { useState } from "react";
 import { ScrambleText } from "@/components/ScrambleText";
 
-const GITHUB_URL = "https://github.com";
-const X_URL = "https://x.com";
-const EMAIL = "mailto:hello@0x9ff.dev";
+const EMAIL = "mailto:root@0x9ff.dev";
 
 export default function SignaturePage() {
+  const [centerHovered, setCenterHovered] = useState(false);
+
   return (
     <main className="relative h-screen min-h-[100vh] w-full bg-[#000000] overflow-hidden">
-      {/* Center: main identity */}
+      {/* Center: main identity — hover only on the title area */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <h1 className="text-zinc-500 transition-colors duration-150 hover:text-white">
+        <h1
+          className={`inline-block cursor-default px-2 py-1 text-5xl font-mono tracking-tight transition-colors duration-300 sm:text-6xl ${
+            centerHovered ? "text-[#0099FF]" : "text-zinc-500"
+          }`}
+          onMouseEnter={() => setCenterHovered(true)}
+          onMouseLeave={() => setCenterHovered(false)}
+        >
           <ScrambleText
             text="0x9FF.dev"
             className="text-5xl font-mono tracking-tight sm:text-6xl"
             scrambleIntervalMs={40}
             resolveIntervalMs={60}
+            active={centerHovered}
           />
         </h1>
       </div>
@@ -33,24 +41,8 @@ export default function SignaturePage() {
         aria-label="Links"
       >
         <a
-          href={GITHUB_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="transition-colors duration-150 hover:text-white focus:text-white focus:outline-none"
-        >
-          [ github ]
-        </a>
-        <a
-          href={X_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="transition-colors duration-150 hover:text-white focus:text-white focus:outline-none"
-        >
-          [ x.com ]
-        </a>
-        <a
           href={EMAIL}
-          className="transition-colors duration-150 hover:text-white focus:text-white focus:outline-none"
+          className="transition-colors duration-300 hover:text-[#0099FF] focus:text-[#0099FF] focus:outline-none"
         >
           [ email ]
         </a>

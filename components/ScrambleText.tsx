@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 
 const HEX_CHARS = "0123456789ABCDEF";
 
@@ -13,6 +13,8 @@ interface ScrambleTextProps {
   className?: string;
   scrambleIntervalMs?: number;
   resolveIntervalMs?: number;
+  /** Optional: control scramble from parent (e.g. wrapper hover) */
+  active?: boolean;
 }
 
 export function ScrambleText({
@@ -20,18 +22,20 @@ export function ScrambleText({
   className = "",
   scrambleIntervalMs = 50,
   resolveIntervalMs = 80,
+  active: controlledActive,
 }: ScrambleTextProps) {
   const [display, setDisplay] = useState(text);
+  const [isHovered, setIsHovered] = useState(false);
   const scrambleRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const resolveRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const isScramblingRef = useRef(false);
+
+  const active = controlledActive !== undefined ? controlledActive : isHovered;
 
   const stopScramble = useCallback(() => {
     if (scrambleRef.current) {
       clearInterval(scrambleRef.current);
       scrambleRef.current = null;
     }
-    isScramblingRef.current = false;
   }, []);
 
   const resolveToOriginal = useCallback(() => {
@@ -53,26 +57,40 @@ export function ScrambleText({
     }, resolveIntervalMs);
   }, [text, resolveIntervalMs]);
 
-  const handleMouseEnter = useCallback(() => {
+  const startScramble = useCallback(() => {
     if (resolveRef.current) {
       clearInterval(resolveRef.current);
       resolveRef.current = null;
     }
-    isScramblingRef.current = true;
     scrambleRef.current = setInterval(() => {
       setDisplay((prev) =>
         prev
           .split("")
-          .map((char, i) => (char === " " || char === "." ? char : randomHexChar()))
+          .map((char) => (char === " " || char === "." ? char : randomHexChar()))
           .join("")
       );
     }, scrambleIntervalMs);
   }, [scrambleIntervalMs]);
 
+  useEffect(() => {
+    if (active) {
+      startScramble();
+      return () => {
+        stopScramble();
+      };
+    } else {
+      stopScramble();
+      resolveToOriginal();
+    }
+  }, [active]); // eslint-disable-line react-hooks/exhaustive-deps -- only react to active
+
+  const handleMouseEnter = useCallback(() => {
+    if (controlledActive === undefined) setIsHovered(true);
+  }, [controlledActive]);
+
   const handleMouseLeave = useCallback(() => {
-    stopScramble();
-    resolveToOriginal();
-  }, [stopScramble, resolveToOriginal]);
+    if (controlledActive === undefined) setIsHovered(false);
+  }, [controlledActive]);
 
   return (
     <span
